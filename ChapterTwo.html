@@ -1,0 +1,268 @@
+<header>
+    <h1>Chapter 2 Data Model and Query Languages</h1>
+    </header>
+    <section>
+    <h2>Introduction</h2>
+    <ul>
+    <li>Data models deeply affects how we think about the problem.</li>
+    <li>Data models are built by layering one on top of another. The key question is: &ldquo;how is it represented in terms of the next-lower layer?&rdquo; Each layer hides the complexity of the layers below by providing a clean model.</li>
+    <li>Every data model embodies assumptions on how it is going to be used. The data model has a profound effect on what the software above can or cannot do.</li>
+    <li>In this chapter, we will compare the relational model, the document model, and a few graph-based models. We will also look at and compare various query languages.</li>
+    </ul>
+    <h2>Relational Model Versus Document Model</h2>
+    <ul>
+    <li>The goal of the relational model is to hide implementation details behind a clean interface.</li>
+    <li>SQL was rooted in relational databases for business data processing in the 1960s and 1970s, and was used for transaction processing and batch processing.</li>
+    <li>SQL was proposed in 1970 and is probably the best-known data model, where data is organized into&nbsp;<strong>relations</strong>&nbsp;(tables), which is an unordered collection of&nbsp;<strong>tuples</strong>&nbsp;(rows).</li>
+    <li>There were also the network model and the hierarchical model in the 1970s and 1980s, but the relational model dominated them.</li>
+    <li>Relational database management systems (RDBMSes) and SQL became the tool of choice around mid-1980s.</li>
+    <li>Object databases came and went around the 1990s, and XML databases appeared in early 2000s. However, neither really overtook the relational model.</li>
+    <li>The relational model turned out to generalize very well.</li>
+    </ul>
+    <h3>NoSQL</h3>
+    <ul>
+    <li>NoSQL was just a catchy hashtag on Twitter for a meetup. NoSQL is the latest attempt to overthrow the relational model&rsquo;s dominance.</li>
+    <li>Driving forces for NoSQL
+    <ul>
+    <li>A need for better scalability (larger datasets, high write throughput)</li>
+    <li>Preference for free and open source software</li>
+    <li>Specialized query operations that are not supported by the relational model</li>
+    <li>The restrictiveness of the relational schemas.</li>
+    </ul>
+    </li>
+    <li>It&rsquo;s likely that relational databases will continue to be used along with many nonrelational databases.</li>
+    </ul>
+    <h3>The Object-Relational Mismatch</h3>
+    <ul>
+    <li>The OOP paradigm requires translation between the relational database model.</li>
+    <li>Strategies to deal with the mismatch
+    <ul>
+    <li>Normalized databases with foreign keys.</li>
+    <li>Use a database that Supports for structured data (PostgreSQL)</li>
+    <li>Encode as JSON or XML and store as text in database. It can&rsquo;t be queried this way.</li>
+    <li>Store as JSON in a document in document-oriented databases (MongoDB). This has a better locality than the normalized representation.</li>
+    </ul>
+    </li>
+    </ul>
+    <h3>Many-to-One and Many-to-Many Relationships</h3>
+    <ul>
+    <li>For&nbsp;<em>enum</em>-type strings, we can store a separate normalized ID to string table, and use the ID in other parts of the database. This will enforce consistency (same spelling, better search), avoid ambiguity, be easier to update, support localization.</li>
+    <li>Using ids reduces duplication. This is the key idea behind normalizing databases. Yet this requires a many-to-one relationship, which may not work well with document databases, whose support for joins are weak.</li>
+    </ul>
+    <h3>Are Document Databases Repeating History</h3>
+    <ul>
+    <li>In 1970s, the IBM&rsquo;s Information Management System also used a hierarchical model, similar to the JSON model. Data was represetned as a tree of records, nested within records, and the&nbsp;<em>network model</em>&nbsp;and&nbsp;<em>relational model</em>&nbsp;was proposed to solve the limitations of the hierarchical model.</li>
+    </ul>
+    <h4>The network model</h4>
+    <ul>
+    <li>Also known as the CODASYL (Conference on DAta Systems Languages) model, the network model allows multiple parents for each record. The lines between records were not foreign keys, but more like pointers (called access path), which a user can follow through.</li>
+    <li>A query is done by moving a cursor through the database by iterating over lists of records and following access paths.</li>
+    <li>Although it made the most efficient use of the hardware, the model made querying and updating the database complicated and inflexible.</li>
+    </ul>
+    <h4>The relational model</h4>
+    <ul>
+    <li>The relational model is simply a relation (table) and a collection of tuples (rows).</li>
+    <li>In a relational database, the&nbsp;<em>query optimizer</em>&nbsp;automatically decides how to efficiently execute the query, where the developer has to decide the access path in the network model.</li>
+    <li>Query optimizers will only need to be run once, and all applications using the database can benefit from it.</li>
+    </ul>
+    <h4>Comparison to document databases</h4>
+    <ul>
+    <li>For one-to-many relationships, document databases are similar to hierarchical model in that they store nested records within their parent record rather than separate records.</li>
+    <li>For many-to-one and many-to-many relationships, document databases are similar to relational databases. The related item is referenced by a&nbsp;<em>document reference</em>&nbsp;(in document databases) and a&nbsp;<em>foreign key</em>&nbsp;(in a relational database).</li>
+    </ul>
+    <h3>Relational Versus Document Databases Today</h3>
+    <ul>
+    <li>We then compare the data model of relational and document databases.
+    <ul>
+    <li>Document databases: better schema flexibility, better performance due to locality, and closer to data structures in applications.</li>
+    <li>Relational databases: better support for joins, and many-to-one and many-to-many relationships.</li>
+    </ul>
+    </li>
+    </ul>
+    <h4>Which data model leads to simpler application code?</h4>
+    <ul>
+    <li>Document model may be a good choice if the application has a document-like structure:tree of one-to-many relationships, while relational models may require splitting a document-like structure into multiple tables.</li>
+    <li>Records in document models are more difficult to directly access when they are deeply nested.</li>
+    <li>For applications with many-to-many relationships, document models are less appealing due to the poor support for joins.</li>
+    <li>For highly interconnected data, document model is awkward, and the relational model is acceptable, and graph models are the most natural.</li>
+    </ul>
+    <h4>Schema flexibility in the document level</h4>
+    <ul>
+    <li>XML support in relational databases usually comes with schema validation while JSON support does not.</li>
+    <li>Document databases are sometimes called&nbsp;<em>schemaless</em>, yet there is an implicit schema. A more accurate term is schema-on-read, meaning schema is only interpreted when data is read, in contrast with schema-on-write for relational database, where validation occurs during write time.</li>
+    <li>An analogy to type checking is dynamic type checking (runtime) and static typing checking (compile-time). In general there is no right or wrong answer.</li>
+    <li>To change a schema in document databases, applications would start writing new documents with the new schema, while in relational databases, one would need a migration query (which is quick for most databases, except MySQL).</li>
+    <li>Schema-on-read is advantageous if items in the collection don&rsquo;t all have the same structure.</li>
+    <li>Schema-on-write is advantageous when all records are expected to have the same structure.</li>
+    </ul>
+    <h4>Data locality for queries</h4>
+    <ul>
+    <li>If the whole document (string of JSON, XML) is required by application often, there is a performance advantage to this storage locality (single lookup, no joins required). If only a small portion of the data is required, this can be wasteful.</li>
+    <li>It&rsquo;s generally recommended to keep documents small and avoid writes that increases the size of documents (same size updates can be done in-place).</li>
+    <li>Google&rsquo;s Spanner database allows table rows to be nested in a parent table. Oracle&rsquo;s database allows multi-table index cluster tables. The column-family concept (used in Cassandra and HBase) has a similar purpose for managing locality.</li>
+    </ul>
+    <h4>Convergence of document and relational databases</h4>
+    <ul>
+    <li>Most relational databases (except MySQL) supports XML. PostgreSQL, MySQL, DB2 supports JSON.</li>
+    <li>RethinkDQ supports joins, and some MongoDB drivers resolves database references.</li>
+    <li>A hybrid of relational and document models is probably the future.</li>
+    </ul>
+    <h2>Query Language for Data</h2>
+    <ul>
+    <li>SQL is a declarative query language, while IMS (IBM&rsquo;s Information Management System) and CODASYL are queried by imperative code.</li>
+    <li>In a declarative language, only the goal is specified, not how the goal is achieved. It hides implementation details and leaves room for performance optimization.</li>
+    <li>The fact that SQL is more limited in functionality gives databases more room for automatic optimizations.</li>
+    <li>Declarative code is easier to parallelize as execution order is not specified.</li>
+    </ul>
+    <h3>Declarative Queries on the Web</h3>
+    <ul>
+    <li>CSS and&nbsp;<a href="https://www.w3.org/Style/XSL/WhatIsXSL.html">XSL</a>&nbsp;are declarative languages to specify styling in HTML, while changing styles directly through Javascript is imperative.</li>
+    <li>Specifying styles using CSS is much better than changing styles directly using Javascript.</li>
+    </ul>
+    <h3>MapReduce Querying</h3>
+    <ul>
+    <li>MapReduce is a programming model for processing large amounts of data in bulk across many machines, and a limited form of MapReduce is supported by MongoDB and CouchDB.</li>
+    <li>MapReduce is somewhere between declarative and imperative.</li>
+    <li>SQL can, but not necessarily have to, be implemented by MapReduce operations.</li>
+    <li>MongoDB supports a declarative query language called&nbsp;<em>aggregation pipeline</em>, where users don&rsquo;t need to coordinate a map and reduce function themselves.</li>
+    </ul>
+    <h2>Graph-Like Data Models</h2>
+    <ul>
+    <li>An application with mostly one-to-many relationships or no relationships between records, the document model is appropriate, but for many-to-many relationships, graph models are more appropriate.</li>
+    <li>Graphs can be homogeneous, where all vertices represent the same type of object and heterogeneous, where vertices may represent completely different objects.</li>
+    </ul>
+    <h3>Property Graphs</h3>
+    <ul>
+    <li>In the property graph model, each vertex consists of
+    <ul>
+    <li>A unique identifier</li>
+    <li>A set of outgoing edges</li>
+    <li>A set of incoming edges</li>
+    <li>A collection of properties (key-value pairs)</li>
+    </ul>
+    </li>
+    <li>Each edge consists of
+    <ul>
+    <li>A unique identifier</li>
+    <li>The vertex at which the edge starts (the tail vertex)</li>
+    <li>The vertex at which the edge ends (the head vertex)</li>
+    <li>A collection of properties (key-value pairs)</li>
+    </ul>
+    </li>
+    <li>The property graph model is analogous to storing two relational databases, one for vertices, one for edges.</li>
+    <li>Multiple relationships can be stored within the same graph by proper labeling the edges.</li>
+    <li>Graphs can be easily extended to accommodate new data types.</li>
+    </ul>
+    <h3>The Cypher Query Language</h3>
+    <ul>
+    <li>Cypher is a declarative query language for property graphs, created for the Neo4j graph database.</li>
+    </ul>
+    <h3>Graph Queries in SQL</h3>
+    <ul>
+    <li>Usually, we know which joins to run in relational database queries, yet in a graph query, the number of joins is not fixed in advance, as we may need to follow an edge multiple times.</li>
+    </ul>
+    <h3>Triple-Stores and SPARQL</h3>
+    <ul>
+    <li>In a triple-store, all information is stored in a three-part statement:&nbsp;<em>subject</em>,&nbsp;<em>predicate</em>,&nbsp;<em>object</em>.</li>
+    <li>The subject is equivalent to a vertex in a graph.</li>
+    <li>The object can be:
+    <ul>
+    <li>A value in a primitive datatype. In this case, the predicate and object forms the key and value of a property of the subject vertex.</li>
+    <li>Another vertex in the graph. In this case, the predicate is the edge between the subject vertex and the object vertex.</li>
+    </ul>
+    </li>
+    </ul>
+    <h4>The semantic web</h4>
+    <ul>
+    <li>The triple-store data model is completely independent of the semantic web.</li>
+    <li>The main idea of semantic web is to have webpages publish data in a consistent format:&nbsp;<a href="https://en.wikipedia.org/wiki/Resource_Description_Framework">Resource Description Framework (RDF)</a>. Unfortunately, the semantic web hasn&rsquo;t been realized in practice much.</li>
+    </ul>
+    <h4>The RDF data model</h4>
+    <ul>
+    <li>RDF can be written in Turtle/N3 or XML.</li>
+    <li>Namespaces are important in RDFs to distinguish the same word across different domains.</li>
+    </ul>
+    <h4>The SPARQL query language</h4>
+    <ul>
+    <li>SPARQL is a query language for triple-stores using the RDF data model.</li>
+    </ul>
+    <h3>Comparing Graph Databases and the Network Model</h3>
+    <table>
+    <thead>
+    <tr>
+    <th>CODASYL</th>
+    <th>Graph Databases</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+    <td>Nested records</td>
+    <td>Specifies which record type can be nested within which other record type</td>
+    <td>No limitations</td>
+    </tr>
+    <tr>
+    <td>Access</td>
+    <td>Requires traversals to reach a particular record</td>
+    <td>Can use unique ID or index vertices in advance</td>
+    </tr>
+    <tr>
+    <td>Children of record</td>
+    <td>Has to be ordered</td>
+    <td>No limitations</td>
+    </tr>
+    <tr>
+    <td>Query language</td>
+    <td>Imperative code</td>
+    <td>Declarative languages</td>
+    </tr>
+    </tbody>
+    </table>
+    <h2>The Foundation: Datalog</h2>
+    <ul>
+    <li>Datalog is a much older language than SPARQL or Cypher.</li>
+    <li>It writes relationship (similar to the triple-store model) as&nbsp;<em>predicate(subject, object)</em>.</li>
+    <li>One can compose new rules from simple rules (it can be recursive!).</li>
+    <li>Words start with upper and lower cases are variables and predicates, respectively.</li>
+    <li>New rules that has all simple rules matched are also added to the database.</li>
+    </ul>
+    <h2>Summary</h2>
+    <table>
+    <thead>
+    <tr>
+    <th>Pros</th>
+    <th>Cons</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+    <td>Hierarchical</td>
+    <td>Straightforward for one-to-many relationships</td>
+    <td>Not good for many-to-many or many-to-one relationships, imperative code for querying.</td>
+    </tr>
+    <tr>
+    <td>Network</td>
+    <td>Straightforward for many-to-many relationships</td>
+    <td>Imperative code for querying</td>
+    </tr>
+    <tr>
+    <td>Relational (SQL)</td>
+    <td>Generalize well</td>
+    <td>Throughput scalability, restrictiveness of relational schema (harder to extend), object-relational mismatch.</td>
+    </tr>
+    <tr>
+    <td>Document (NoSQL)</td>
+    <td>Throughput scalability, good for self contained documents, easier to extend.</td>
+    <td>Not good for data with many cross-document relationships.</td>
+    </tr>
+    <tr>
+    <td>Graph (NoSQL)</td>
+    <td>Good for many-to-many relationships, easier to extend..</td>
+    <td>Harder to do sum and max queries.&nbsp;<a href="https://www.quora.com/What-are-the-pros-and-cons-of-using-a-graph-database">Link</a></td>
+    </tr>
+    </tbody>
+    </table>
+    <ul>
+    <li>Document, relational, and graph are all widely used. Although we can emulate one in another, it could be awkward.</li>
+    <li>Next chapter will discuss tradeoff during implementing those data models.</li>
+    </ul>
+    </section>

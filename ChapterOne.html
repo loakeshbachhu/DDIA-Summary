@@ -1,0 +1,130 @@
+<h1>Chapter 1 Reliable, Scalable, and Maintainable Applications</h1>
+<h2>Introduction</h2>
+<ul>
+<li>Many applications are data-intensive (amount, the complexity of data are high), as opposed to computation-intensive.</li>
+<li>Most data-intensive applications are built from standard building blocks, such as databases, caches, etc.</li>
+<li>This book is about the principles and practicalities of data systems and how to use them to build data-intensive applications.</li>
+</ul>
+<h2>Thinking About Data Systems</h2>
+<ul>
+<li>Why lump sum all under the name term data systems?
+<ul>
+<li>The boundary may not be clear, i.e., Redis, Kafka.</li>
+<li>No single tool meets all needs. Need to stitch many systems with application code.</li>
+</ul>
+</li>
+<li>Stitching smaller systems together results in a larger data system, with different characteristics.</li>
+<li>This book focus on three qualities that are important for data systems: Reliability, Scalability, and Maintainability.</li>
+</ul>
+<h2>Reliability</h2>
+<ul>
+<li>Definition: Continue to work when faults (NOT failure!) occur. We say such a system is fault-tolerant.</li>
+<li>Faults are defined as components of the system deviating from the spec while failure is defined as a system stop working entirely.</li>
+<li>It is impossible to reduce faults to 0; therefore, we should design a system that tolerates faults.</li>
+<li>Introducing random faults (as in Netflix Chaos Monkey) could improve confidence in fault-tolerant systems.</li>
+<li>For security issues, we would prefer to prevent faults over tolerating them, as security breaches cannot be cured.</li>
+</ul>
+<h3>Hardware Faults</h3>
+<ul>
+<li>In the past, people use redundant hardware to keep machines/services running.</li>
+<li>Recently, platforms are designed to prioritize flexibility and elasticity. Systems can tolerate the loss of whole machines. No downtime scheduled needed for single machine maintenance.</li>
+</ul>
+<h3>Software Errors</h3>
+<ul>
+<li>Software errors/bugs are more systematic. They impact all machines in the same service.</li>
+<li>Alerts can help check the SLA guarantees.</li>
+</ul>
+<h3>Human Errors</h3>
+<ul>
+<li>Most outages are human errors. We can
+<ul>
+<li>Minimize opportunities for errors through designs.</li>
+<li>Decouple where mistakes are made (sandbox) and where the mistakes cause failures (production).</li>
+<li>Test thoroughly, including unit, integration, and manual tests.</li>
+<li>Allow quick and easy recovery to minimize impact.</li>
+<li>Set up clear monitoring on performance metrics and error rates.</li>
+</ul>
+</li>
+</ul>
+<h3>How Important Is Reliability</h3>
+<ul>
+<li>Reliability is important for the business. Any downtime could be a revenue loss.</li>
+<li>There are situations where we may tradeoff reliability for lower development costs, but we should be very conscious when we are cutting corners.</li>
+</ul>
+<h2>Scalability</h2>
+<ul>
+<li>Scalability is the term we use to describe a system&rsquo;s ability to cope with increased&nbsp;<strong>load</strong>.</li>
+</ul>
+<h3>Load</h3>
+<ul>
+<li>Described with&nbsp;<em>load parameters</em>, which has different meaning under different architectures. It can be requests per second for services, read write ratio for databases, number of simultaneous users. Sometimes the average case matters, and sometimes the bottleneck is dominated by a few extreme cases.</li>
+<li>Twitter example
+<ul>
+<li>Twitter has two main operations: post Tweet and home timeline (~100x more requests than post Tweet).</li>
+<li>Approach 1: If we store Tweets in a simple database, home timeline queries may be slow.</li>
+<li>Approach 2: We can push Tweets into the home timeline cache of each follower when a Tweet is published.</li>
+<li>Approach 2 does not work for users with many followers, since the approach would need to update too many home timeline caches.</li>
+<li>Distribution of followers in this case is a load parameter.</li>
+<li>We can use approach 1 for users with many followers and approach 2 for the others.</li>
+</ul>
+</li>
+</ul>
+<h3>Performance</h3>
+<ul>
+<li>Two ways to look at performance.
+<ul>
+<li>When we increase load parameters and keep resources unchanged. How is the performance affected.</li>
+<li>When we increase load parameters how much resource do we need to keep performance unchanged.</li>
+</ul>
+</li>
+<li>Batch processing systems cares about throughput (number of records processed per second).</li>
+<li>Online systems cares about the response time, which is measured in percentiles like p50, p90, p99, p999.</li>
+<li>Tail latencies (p999) are sometimes important as they are usually requests from users with a lot of data.</li>
+<li>Percentiles are often used in service level objectives (SLOs) and service level agreements (SLAs)</li>
+<li>Queuing delays often account for a large part of high percentiles. Since parallelism is limited in servers. Slow requests may cause&nbsp;<em>head-of-line blocking</em>&nbsp;and make subsequent requests slow.</li>
+<li>The latency from an end user request is the slowest of all the parallel calls. The more backend calls we make, the higher the chance that one of the requests were slow. This is known as&nbsp;<em>tail latency amplification</em>.</li>
+</ul>
+<h3>Coping with Load</h3>
+<ul>
+<li>Scaling up (vertical scaling, with a more powerful machine) and scaling out (horizontal scaling, distributing the load across multiple machines, the&nbsp;<em>shared-nothing</em>&nbsp;architecture) are two popular approaches to cope with increasing load. Good architectures usually involves a mixture of both.</li>
+<li>Elastic systems can add computing resources when load increases automatically but it may have more surprises.</li>
+<li>Scaling up stateful data systems can be complex. For this reason, common wisdom is to use a single node until cost or availability requirements are no longer satisfied. Of course this may change in the future.</li>
+<li>The architecture for large scale systems is usually highly specific and built around its assumptions on which operations will be common or rare. There is no one-size-fits-all scalable architecture.</li>
+</ul>
+<h2>Maintainability</h2>
+<ul>
+<li>Three design principles to minimize pain for maintenance.</li>
+</ul>
+<h3>Operability: Easier Life for Operations</h3>
+<ul>
+<li>Operations are for keeping a software system running smoothly.</li>
+<li>Good operability means making routine tasks easy. Data systems can
+<ul>
+<li>Provide visibility into the runtime behavior</li>
+<li>Provide support for automation and integration with standard tools</li>
+<li>Avoid dependencies on individual machines</li>
+<li>Provide good documentation</li>
+<li>Provide good default behavior</li>
+<li>Self-healing where appropriate</li>
+<li>Minimize surprises</li>
+</ul>
+</li>
+</ul>
+<h3>Simplicity: Managing Complexity</h3>
+<ul>
+<li>Complexity slows down engineers working on the system and increases the cost of maintenance.</li>
+<li>Possible complexity symptoms: explosion of state space, tight coupling of modules, tangled dependencies, inconsistent naming and terminology, hacks for solving performance problems, special cases for workarounds, etc.</li>
+<li>We can remove accidental complexity, which is complexity not inherent in the business problem. This can be done through abstraction and hiding implementation details.</li>
+</ul>
+<h3>Evolvability: Making Changes Easy</h3>
+<ul>
+<li>System requirements will change so we need to make making changes easy.</li>
+<li>Test-driven development and refactoring are tools for building software that is easier to change.</li>
+<li>Refactoring large data systems is different from refactoring a small local application (Agile); therefore, we use the term evolvability to refer to ease to make changes in a data system.</li>
+</ul>
+<h2>Summary</h2>
+<ul>
+<li>Reliability means making systems work correctly even when faults occur. Faults can be from hardware, software, or humans.</li>
+<li>Scalability means having strategies to keep good performance even when load increases. The metrics to measure load and performance is system dependent.</li>
+<li>Maintainability is about making life easier for engineering and operation teams. Good abstraction reduces complexity and makes system easier to modify and adapt for new use cases.</li>
+</ul>
